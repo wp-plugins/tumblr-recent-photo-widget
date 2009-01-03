@@ -31,4 +31,4 @@ no, you do not need JSON module any more.
 == Screenshots ==
 
 
-`<?php code(); // goes in backticks ?>`
+
