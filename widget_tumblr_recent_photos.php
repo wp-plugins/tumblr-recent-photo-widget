@@ -3,7 +3,7 @@
 Plugin Name: Tumblr Recent Photos Widget
 Plugin URI: http://www.vjcatkick.com/
 Description: Shows a list of recent photos from Tumber.
-Version: 0.0.3
+Version: 0.1.1
 Author: V.J.Catkick
 Author URI: http://www.vjcatkick.com/
 */
@@ -46,6 +46,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 - bug fixed - max number of photos
 * Tue Dec 30 2008 - v0.0.3
 - compatibility fix
+* Jan 03 2009 - v0.1.1
+- upgrade, no requires JSON lib, from this version, we are using XML
+- requires PHP 5.1 or later version
 */
 
 
@@ -60,39 +63,47 @@ function widget_tumblr_recent_photos_init() {
 		$title = $options['tumblr_recents_src_title'];
 		$tuid = $options['tumblr_recents_src_uid'];
 		$tumblr_recents_src_count = $options['tumblr_recents_src_count'];
-		$tumblr_recents_src_length = $options['tumblr_recents_src_length'];
+		$tumblr_recents_img_style = $options['tumblr_recents_img_style'];
+		$tumblr_recents_photo_size = $options['tumblr_recents_photo_size'];
+		$tumblr_recents_display_pagelink = $options['tumblr_recents_display_pagelink'];
 
 		$output = '<div id="tumblr_recent_photos"><ul>';
+		// --
 
-		// section to get tumblr photos from here 
-		$request = 'http://' . $tuid . '.tumblr.com/api/read/json?num=999&type=photo';
+if ( function_exists('simplexml_load_file') ) {
 
-		$ci = curl_init($request);
-		curl_setopt($ci, CURLOPT_RETURNTRANSFER, TRUE);
-		$input = curl_exec($ci);
+	$tumblr_userid = $tuid;
+	$tumblr_num = $tumblr_recents_src_count;
+	$img_style = $tumblr_recents_img_style;
+	$tumblr_size = $tumblr_recents_photo_size;
+	$display_pagelink = (boolean) $tumblr_recents_display_pagelink;
+	$pagecounter = 0;		// for future use
 
-		$input = str_replace('var tumblr_api_read = ','',$input);
-		$input = str_replace(';','',$input);
+	$_tumblrurl = 'http://' . $tumblr_userid . '.tumblr.com/api/read?start=' . $pagecounter . '&num=' . $tumblr_num . '&type=photo';
+	$_tumblrurl  = urlencode( $_tumblrurl );	// for only compatibility
+	$_tumblr_xml = simplexml_load_file( $_tumblrurl );
 
-		$value = json_decode($input, true);
-		$content =  $value['posts'];
+	foreach( $_tumblr_xml->posts[0]->post as $p ) {
+		$photourl = $p->{"photo-url"}[$tumblr_size];		// 4 = 75px sq
+		$linkurl = $p[url];
+		$output .= '<a href="' . $linkurl . '" target="_blank" >';
+		$output .= '<img src="' . $photourl . '" border="0" style="' . $img_style . '" />';
+		$output .= '</a>';
+	} /* foreach */
+//	$output .= '<br clear="both" >';
 
-		$item = $tumblr_recents_src_count;	// the number of items you want to display
-		$type = 'photo-url-75';	// 75, 100, 250, 400, 500
+	if( $display_pagelink ) {
+		$output .= '<div style="width:100%; text-align:center; font-size:7pt; margin-right:10px;" >';
+		$output .='<a href="http://' . $tumblr_userid . '.tumblr.com/" target="_blank" >';
+		$output .= $_tumblr_xml->tumblelog[title];
+		$output .= '</a></div>';
+	} /* if */
 
-		$i = 0;$stopper = 0;$dispc = 0;
-		do {
-			if ($content[$i]['type'] == 'photo') {
-				$output .=  ('<a href="' . $content[$i]['url'] . '" target="_blank" ><img src="' . $content[$i][$type] . '" width="75" vspace = "4" hspace="4" alt="" title="" /></a>' );
-				if( $dispc % 2 ) { $output .= '<br />'; }
-				$dispc++;
-		    }
-			++$i;
-			if( ++$stopper > 100 ) { break; }	// make sure it will stop
-		} while( $dispc < $item );
-		if( $dispc == 0 ) $output .= "No photos.";
-		// tumblr section end
+}else{
+	$output .= 'Requires PHP 5.1';
+} /* if else */
 
+		// --
 		$output .= '</ul></div>';
 
 		// These lines generate the output
@@ -107,39 +118,52 @@ function widget_tumblr_recent_photos_init() {
 			$newoptions['tumblr_recents_src_title'] = strip_tags(stripslashes($_POST["tumblr_recents_src_title"]));
 			$newoptions['tumblr_recents_src_uid'] = strip_tags(stripslashes($_POST["tumblr_recents_src_uid"]));
 			$newoptions['tumblr_recents_src_count'] = (int) $_POST["tumblr_recents_src_count"];
-			$newoptions['tumblr_recents_src_length'] = (int) $_POST["tumblr_recents_src_length"];
-		}
+			$newoptions['tumblr_recents_img_style'] = $_POST["tumblr_recents_img_style"];
+			$newoptions['tumblr_recents_photo_size'] = (int) $_POST["tumblr_recents_photo_size"];
+			$newoptions['tumblr_recents_display_pagelink'] = (boolean) $_POST["tumblr_recents_display_pagelink"];
+		} /* if */
 		if ( $options != $newoptions ) {
 			$options = $newoptions;
 			update_option('widget_tumblr_recent_photos', $options);
-		}
+		} /* if */
 
 		// those are default value
 		if ( !$options['tumblr_recents_src_count'] ) $options['tumblr_recents_src_count'] = 4;
-		if ( !$options['tumblr_recents_src_length'] ) $options['tumblr_recents_src_length'] = 75;
+		if ( !$options['tumblr_recents_img_style'] ) $options['tumblr_recents_img_style'] = 'float:left; margin-right:12px; margin-bottom:8px;';
+		if ( !$options['tumblr_recents_photo_size'] ) $options['tumblr_recents_photo_size'] = 4;
 
 		$tumblr_recents_src_count = $options['tumblr_recents_src_count'];
-		$tumblr_recents_src_length = $options['tumblr_recents_src_length'];
+		$tumblr_recents_img_style = $options['tumblr_recents_img_style'];
+		$tumblr_recents_photo_size = $options['tumblr_recents_photo_size'];
+		$tumblr_recents_display_pagelink = $options['tumblr_recents_display_pagelink'];
 
 		$title = htmlspecialchars($options['tumblr_recents_src_title'], ENT_QUOTES);
 		$tuid = htmlspecialchars($options['tumblr_recents_src_uid'], ENT_QUOTES);
 ?>
 
-	    <?php _e('Title:'); ?> <input style="width: 170px;" id="tumblr_recents_src_title" name="tumblr_recents_src_title" type="text" value="<?php echo $title; ?>" /><br />
-		<?php _e('Name:'); ?> <input style="width: 100px;" id="tumblr_recents_src_uid" name="tumblr_recents_src_uid" type="text" value="<?php echo $tuid; ?>" />.tumblr.com<br />
-            <p style="text-align: left;"><?php _e('Number of photos to show:'); ?> <input style="width: 20px;" id="tumblr_recents_src_count" name="tumblr_recents_src_count" type="text" value="<?php echo $tumblr_recents_src_count; ?>" /> 
+		<?php _e('Title:'); ?> <input style="width: 170px;" id="tumblr_recents_src_title" name="tumblr_recents_src_title" type="text" value="<?php echo $title; ?>" /><br />
+		<?php _e('Tumblr ID:'); ?> <input style="width: 100px;" id="tumblr_recents_src_uid" name="tumblr_recents_src_uid" type="text" value="<?php echo $tuid; ?>" />.tumblr.com<br />
+		<?php _e('Number of photos to show:'); ?> <input style="width: 20px;" id="tumblr_recents_src_count" name="tumblr_recents_src_count" type="text" value="<?php echo $tumblr_recents_src_count; ?>" /> <br />
+
+		<?php _e('Img CSS:'); ?><br /><input style="width: 100%;" id="tumblr_recents_img_style" name="tumblr_recents_img_style" type="textarea" value="<?php echo $tumblr_recents_img_style; ?>" /><br />
+		<?php _e('Img Size:'); ?> 
+<!--		<input style="" id="tumblr_recents_photo_size" name="tumblr_recents_photo_size" type="radio" value="0" <?php if( $tumblr_recents_photo_size == 0 ) {echo 'checked';} ?> />500 -->
+		<input style="" id="tumblr_recents_photo_size" name="tumblr_recents_photo_size" type="radio" value="1" <?php if( $tumblr_recents_photo_size == 1 ) {echo 'checked';} ?> />400
+		<input style="" id="tumblr_recents_photo_size" name="tumblr_recents_photo_size" type="radio" value="2" <?php if( $tumblr_recents_photo_size == 2 ) {echo 'checked';} ?> />250
+		<input style="" id="tumblr_recents_photo_size" name="tumblr_recents_photo_size" type="radio" value="3" <?php if( $tumblr_recents_photo_size == 3 ) {echo 'checked';} ?> />125
+		<input style="" id="tumblr_recents_photo_size" name="tumblr_recents_photo_size" type="radio" value="4" <?php if( $tumblr_recents_photo_size == 4 ) {echo 'checked';} ?> />75<br />
+
+		<input style="" id="tumblr_recents_display_pagelink" name="tumblr_recents_display_pagelink" type="checkbox" value="1" <?php if( $tumblr_recents_display_pagelink ) {echo 'checked';} ?> />Display tumblr link<br />
+
   	    <input type="hidden" id="tumblr_recents_src_submit" name="tumblr_recents_src_submit" value="1" />
 
 <?php
 	} /* widget_tumblr_recent_photos_control() */
 
-	// This registers our widget so it appears with the other available
-	// widgets and can be dragged and dropped into any active sidebars.
 	register_sidebar_widget('Tumblr Recent Photos', 'widget_tumblr_recent_photos');
 	register_widget_control('Tumblr Recent Photos', 'widget_tumblr_recent_photos_control' );
 } /* widget_tumblr_recent_photos_init() */
 
-// Run our code later in case this loads prior to any required plugins.
 add_action('plugins_loaded', 'widget_tumblr_recent_photos_init');
 
 ?>

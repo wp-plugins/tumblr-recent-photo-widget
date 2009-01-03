@@ -2,8 +2,8 @@
 Contributors: V.J.Catkick
 Donate link: http://www.vjcatkick.com/
 Tags: tumblr, photo, sidebar
-Requires at least: 2.0.2
-Tested up to: 2.1
+Requires at least: 2.5
+Tested up to: 2.7
 Stable tag: 4.3
 
 This widget shows tumblr's photo thumbnail on your sidebar.
@@ -11,7 +11,9 @@ This widget shows tumblr's photo thumbnail on your sidebar.
 == Description ==
 
 This widget shows tumblr's photo thumbnail on your sidebar.
-Requires PHP with JSON module.
+Requires PHP 5.1 or later version, from this version you do not need JSON module anymore.
+
+in addition, you can specify each images's CSS on your option panel.
 
 == Installation ==
 
@@ -23,7 +25,7 @@ drag it to where you would like to have it!
 
 = requires JSON module? =
 
-Yes, you must have.
+no, you do not need JSON module any more.
 
 
 == Screenshots ==
