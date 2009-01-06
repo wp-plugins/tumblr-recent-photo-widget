@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Tumblr Recent Photos Widget
-Plugin URI: http://www.vjcatkick.com/
+Plugin URI: http://www.vjcatkick.com/?page_id=3008
 Description: Shows a list of recent photos from Tumber.
 Version: 0.1.1
 Author: V.J.Catkick
