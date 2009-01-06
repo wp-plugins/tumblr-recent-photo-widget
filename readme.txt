@@ -1,4 +1,4 @@
-=== Tumblr Recent Photos Widget ===
+=== Tumblr Recent Photos ===
 Contributors: V.J.Catkick
 Donate link: http://www.vjcatkick.com/
 Tags: tumblr, photo, sidebar
