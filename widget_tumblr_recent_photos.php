@@ -3,7 +3,7 @@
 Plugin Name: Tumblr Recent Photos Widget
 Plugin URI: http://www.vjcatkick.com/?page_id=3008
 Description: Shows a list of recent photos from Tumber.
-Version: 0.1.1
+Version: 0.1.2
 Author: V.J.Catkick
 Author URI: http://www.vjcatkick.com/
 */
@@ -49,6 +49,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 * Jan 03 2009 - v0.1.1
 - upgrade, no requires JSON lib, from this version, we are using XML
 - requires PHP 5.1 or later version
+* Fev 01 2009 - v0.1.2 - non release
+- add: additional HTML box
 */
 
 
@@ -66,6 +68,7 @@ function widget_tumblr_recent_photos_init() {
 		$tumblr_recents_img_style = $options['tumblr_recents_img_style'];
 		$tumblr_recents_photo_size = $options['tumblr_recents_photo_size'];
 		$tumblr_recents_display_pagelink = $options['tumblr_recents_display_pagelink'];
+		$tumblr_recents_additional_html = $options['tumblr_recents_additional_html'];		// 0.1.2
 
 		$output = '<div id="tumblr_recent_photos"><ul>';
 		// --
@@ -93,10 +96,15 @@ if ( function_exists('simplexml_load_file') ) {
 //	$output .= '<br clear="both" >';
 
 	if( $display_pagelink ) {
-		$output .= '<div style="width:100%; text-align:center; font-size:7pt; margin-right:10px;" >';
+		$output .= '<div style="width:100%; text-align:center; font-size:7pt; margin-right:10px; margin-bottom:3px;" >';
 		$output .='<a href="http://' . $tumblr_userid . '.tumblr.com/" target="_blank" >';
 		$output .= $_tumblr_xml->tumblelog[title];
 		$output .= '</a></div>';
+	} /* if */
+
+	// 0.1.2
+	if( $tumblr_recents_additional_html ) {
+		$output .= str_replace( "\\","", $tumblr_recents_additional_html );
 	} /* if */
 
 }else{
@@ -121,6 +129,7 @@ if ( function_exists('simplexml_load_file') ) {
 			$newoptions['tumblr_recents_img_style'] = $_POST["tumblr_recents_img_style"];
 			$newoptions['tumblr_recents_photo_size'] = (int) $_POST["tumblr_recents_photo_size"];
 			$newoptions['tumblr_recents_display_pagelink'] = (boolean) $_POST["tumblr_recents_display_pagelink"];
+			$newoptions['tumblr_recents_additional_html'] = $_POST["tumblr_recents_additional_html"];	// 0.1.2
 		} /* if */
 		if ( $options != $newoptions ) {
 			$options = $newoptions;
@@ -136,6 +145,7 @@ if ( function_exists('simplexml_load_file') ) {
 		$tumblr_recents_img_style = $options['tumblr_recents_img_style'];
 		$tumblr_recents_photo_size = $options['tumblr_recents_photo_size'];
 		$tumblr_recents_display_pagelink = $options['tumblr_recents_display_pagelink'];
+		$tumblr_recents_additional_html = $options['tumblr_recents_additional_html'];		// 0.1.2
 
 		$title = htmlspecialchars($options['tumblr_recents_src_title'], ENT_QUOTES);
 		$tuid = htmlspecialchars($options['tumblr_recents_src_uid'], ENT_QUOTES);
@@ -154,6 +164,9 @@ if ( function_exists('simplexml_load_file') ) {
 		<input style="" id="tumblr_recents_photo_size" name="tumblr_recents_photo_size" type="radio" value="4" <?php if( $tumblr_recents_photo_size == 4 ) {echo 'checked';} ?> />75<br />
 
 		<input style="" id="tumblr_recents_display_pagelink" name="tumblr_recents_display_pagelink" type="checkbox" value="1" <?php if( $tumblr_recents_display_pagelink ) {echo 'checked';} ?> />Display tumblr link<br />
+
+		<?php _e('Additional HTML:'); ?><br />
+		<textarea rows=3 id="tumblr_recents_additional_html" name="tumblr_recents_additional_html" /><?php echo $tumblr_recents_additional_html; ?></textarea><br />
 
   	    <input type="hidden" id="tumblr_recents_src_submit" name="tumblr_recents_src_submit" value="1" />
 
