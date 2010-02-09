@@ -3,7 +3,7 @@
 Plugin Name: Tumblr Recent Photos Widget
 Plugin URI: http://www.vjcatkick.com/?page_id=3008
 Description: Shows a list of recent photos from Tumber.
-Version: 0.1.2
+Version: 0.1.3
 Author: V.J.Catkick
 Author URI: http://www.vjcatkick.com/
 */
@@ -51,6 +51,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 - requires PHP 5.1 or later version
 * Fev 01 2009 - v0.1.2 - non release
 - add: additional HTML box
+* Fev 09 2010 - v0.1.3
+- fixed: float bug
+- adjusted: argument of image size at XML - 4:75 -> 5:75 and so on
 */
 
 
@@ -84,13 +87,18 @@ if ( function_exists('simplexml_load_file') ) {
 
 	$_tumblrurl = 'http://' . $tumblr_userid . '.tumblr.com/api/read?start=' . $pagecounter . '&num=' . $tumblr_num . '&type=photo';
 	$_tumblrurl  = urlencode( $_tumblrurl );	// for only compatibility
-	$_tumblr_xml = simplexml_load_file( $_tumblrurl );
+	$_tumblr_xml = @simplexml_load_file( $_tumblrurl );
+
+echo '<!-- ';
+print_r( $_tumblr_xml );
+echo ' -->';
+
 
 	foreach( $_tumblr_xml->posts[0]->post as $p ) {
 		$photourl = $p->{"photo-url"}[$tumblr_size];		// 4 = 75px sq
 		$linkurl = $p[url];
 		$output .= '<a href="' . $linkurl . '" target="_blank" >';
-		$output .= '<img src="' . $photourl . '" border="0" style="' . $img_style . '" />';
+		$output .= '<img src="' . $photourl . '" border="0" alt="' . $linkurl . '" style="' . $img_style . '" />';		// 0.1.3 fix (adding alt)
 		$output .= '</a>';
 	} /* foreach */
 //	$output .= '<br clear="both" >';
@@ -113,6 +121,7 @@ if ( function_exists('simplexml_load_file') ) {
 
 		// --
 		$output .= '</ul></div>';
+		$output .= '<br clear="all" />';	// 0.1.3
 
 		// These lines generate the output
 		echo $before_widget . $before_title . $title . $after_title;
@@ -158,10 +167,14 @@ if ( function_exists('simplexml_load_file') ) {
 		<?php _e('Img CSS:'); ?><br /><input style="width: 100%;" id="tumblr_recents_img_style" name="tumblr_recents_img_style" type="textarea" value="<?php echo $tumblr_recents_img_style; ?>" /><br />
 		<?php _e('Img Size:'); ?> 
 <!--		<input style="" id="tumblr_recents_photo_size" name="tumblr_recents_photo_size" type="radio" value="0" <?php if( $tumblr_recents_photo_size == 0 ) {echo 'checked';} ?> />500 -->
-		<input style="" id="tumblr_recents_photo_size" name="tumblr_recents_photo_size" type="radio" value="1" <?php if( $tumblr_recents_photo_size == 1 ) {echo 'checked';} ?> />400
-		<input style="" id="tumblr_recents_photo_size" name="tumblr_recents_photo_size" type="radio" value="2" <?php if( $tumblr_recents_photo_size == 2 ) {echo 'checked';} ?> />250
-		<input style="" id="tumblr_recents_photo_size" name="tumblr_recents_photo_size" type="radio" value="3" <?php if( $tumblr_recents_photo_size == 3 ) {echo 'checked';} ?> />125
-		<input style="" id="tumblr_recents_photo_size" name="tumblr_recents_photo_size" type="radio" value="4" <?php if( $tumblr_recents_photo_size == 4 ) {echo 'checked';} ?> />75<br />
+<!--		<input style="" id="tumblr_recents_photo_size" name="tumblr_recents_photo_size" type="radio" value="1" <?php if( $tumblr_recents_photo_size == 1 ) {echo 'checked';} ?> />500 -->
+<?php
+// renumber 0.1.3
+?>
+		<input style="" id="tumblr_recents_photo_size" name="tumblr_recents_photo_size" type="radio" value="2" <?php if( $tumblr_recents_photo_size == 2 ) {echo 'checked';} ?> />400
+		<input style="" id="tumblr_recents_photo_size" name="tumblr_recents_photo_size" type="radio" value="3" <?php if( $tumblr_recents_photo_size == 3 ) {echo 'checked';} ?> />250
+		<input style="" id="tumblr_recents_photo_size" name="tumblr_recents_photo_size" type="radio" value="4" <?php if( $tumblr_recents_photo_size == 4 ) {echo 'checked';} ?> />125
+		<input style="" id="tumblr_recents_photo_size" name="tumblr_recents_photo_size" type="radio" value="5" <?php if( $tumblr_recents_photo_size == 5 ) {echo 'checked';} ?> />75<br />
 
 		<input style="" id="tumblr_recents_display_pagelink" name="tumblr_recents_display_pagelink" type="checkbox" value="1" <?php if( $tumblr_recents_display_pagelink ) {echo 'checked';} ?> />Display tumblr link<br />
 
