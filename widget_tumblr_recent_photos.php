@@ -3,7 +3,7 @@
 Plugin Name: Tumblr Recent Photos Widget
 Plugin URI: http://www.vjcatkick.com/?page_id=3008
 Description: Shows a list of recent photos from Tumber.
-Version: 0.1.4
+Version: 0.1.5
 Author: V.J.Catkick
 Author URI: http://www.vjcatkick.com/
 */
@@ -56,6 +56,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 - adjusted: argument of image size at XML - 4:75 -> 5:75 and so on
 * Fev 09 2010 - v0.1.4
 - fixed: forget removing debug command
+* Fev 09 2010 - v0.1.5
+- fixed: error message issue
 */
 
 
@@ -91,7 +93,7 @@ if ( function_exists('simplexml_load_file') ) {
 	$_tumblrurl  = urlencode( $_tumblrurl );	// for only compatibility
 	$_tumblr_xml = @simplexml_load_file( $_tumblrurl );
 
-
+if( $_tumblr_xml && $_tumblr_xml->posts[0] ) {
 	foreach( $_tumblr_xml->posts[0]->post as $p ) {
 		$photourl = $p->{"photo-url"}[$tumblr_size];		// 4 = 75px sq
 		$linkurl = $p[url];
@@ -100,6 +102,8 @@ if ( function_exists('simplexml_load_file') ) {
 		$output .= '</a>';
 	} /* foreach */
 //	$output .= '<br clear="both" >';
+} /* if */
+
 
 	if( $display_pagelink ) {
 		$output .= '<div style="width:100%; text-align:center; font-size:7pt; margin-right:10px; margin-bottom:3px;" >';
